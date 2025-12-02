@@ -123,8 +123,8 @@ with left_col:
     regions = COUNTRY_REGION[country]["regions"]
     region = st.selectbox("Region", options=regions)
 
-    # set default to Single-family house for the demo example
-    st.selectbox("Building archetype", options=list(ARCHETYPE_PROFILES.keys()), index=list(ARCHETYPE_PROFILES.keys()).index("Single-family house"), key="archetype_select")
+    # set default to Apartment (multi-family) for the demo example
+    st.selectbox("Building archetype", options=list(ARCHETYPE_PROFILES.keys()), index=list(ARCHETYPE_PROFILES.keys()).index("Apartment (multi-family)"), key="archetype_select")
     archetype = st.session_state["archetype_select"]
 
     construction_year = st.number_input("Year of construction", value=1990, min_value=1800, max_value=2025, step=1)
@@ -133,7 +133,7 @@ with left_col:
     if renovate_checkbox:
         renovation_year = st.number_input("Year of renovation", value=2025, min_value=1800, max_value=2025, step=1)
 
-    n_stories = st.number_input("Number of stories", value=2, min_value=1, max_value=30, step=1)
+    n_stories = st.number_input("Number of stories", value=1, min_value=1, max_value=30, step=1)
     floor_area = st.number_input("Net floor area (m²)", value=140.0, min_value=10.0, step=1.0)
 
     st.subheader("Financial inputs")
@@ -447,20 +447,19 @@ if run_sim:
 
         st.markdown("---")
 
-        # 3) CAPEX & OPEX time series (median + 10/90%)
+        # 3) CAPEX & OPEX time series (median only)
         st.subheader("CAPEX (t=0) and annual OPEX (years 1..N)")
         years = mc["years"]
         proj_life = mc["proj_life"]
         # CAPEX scalar (show median)
         capex_med = np.median(mc["capex"])
         cum_opex_med = np.median(mc["cum_opex"])
-        # Plot: bar at t=0 for CAPEX, and shaded band + median line for OPEX
+        # Plot: bar at t=0 for CAPEX, and median line for OPEX
         fig3, ax3 = plt.subplots(figsize=(9, 3.0))
         # CAPEX bar at x=0
-        ax3.bar(0, capex_med, width=0.6, label="CAPEX (median)", color="tab:orange")
+        ax3.bar(0, capex_med, width=0.6, label="CAPEX", color="tab:orange")
         # OPEX median line across years (plot at x=1..N)
-        ax3.plot(years, mc["opex_p50"], label="OPEX median (yearly)", linewidth=2)
-        ax3.fill_between(years, mc["opex_p10"], mc["opex_p90"], alpha=0.25, label="OPEX 10%–90% band")
+        ax3.plot(years, mc["opex_p50"], label="OPEX (yearly)", linewidth=2)
         ax3.set_xlabel("Year (0 = CAPEX)", fontsize=9)
         ax3.set_ylabel("€", fontsize=9)
         ax3.set_xticks(np.concatenate(([0], years)))
@@ -504,25 +503,19 @@ if run_sim:
             "10%": [
                 np.nanpercentile(mc["npvs"], 10),
                 np.nanpercentile(mc["irrs"] * 100, 10),
-                np.percentile(mc["capex"], 10),
-                np.percentile(mc["cum_opex"], 10),
                 np.percentile(mc["arv_pct"] * 100, 10)
             ],
             "median": [
                 np.nanpercentile(mc["npvs"], 50),
                 np.nanpercentile(mc["irrs"] * 100, 50),
-                np.percentile(mc["capex"], 50),
-                np.percentile(mc["cum_opex"], 50),
                 np.percentile(mc["arv_pct"] * 100, 50)
             ],
             "90%": [
                 np.nanpercentile(mc["npvs"], 90),
                 np.nanpercentile(mc["irrs"] * 100, 90),
-                np.percentile(mc["capex"], 90),
-                np.percentile(mc["cum_opex"], 90),
                 np.percentile(mc["arv_pct"] * 100, 90)
             ]
-        }, index=["NPV (EUR)", "IRR (%)", "CAPEX (EUR)", "Cumulative OPEX (EUR)", "ARV uplift (%)"])
+        }, index=["NPV (EUR)", "IRR (%)", "ARV uplift (%)"])
 
         # format and show larger table
         st.dataframe(df_summary.style.format({
