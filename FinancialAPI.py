@@ -94,7 +94,7 @@ def compute_irr(cashflows):
 # UI: inputs (left) and outputs (right)
 # -------------------------
 import base64
-with open('logo.png', 'rb') as f:
+with open('Logo.png', 'rb') as f:
     logo_data = base64.b64encode(f.read()).decode()
 
 st.markdown(f"""
